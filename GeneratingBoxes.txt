@@ -1,0 +1,61 @@
+function GenerateBoxes(lengthStack,widthStack,x0,y0,z0,cubeSize,offset,counter)
+    
+    local VISIBLE_EDGES=2
+    local RESPONDABLE_SHAPE=8
+    local CubeSize={cubeSize,cubeSize,cubeSize}
+    
+    for i = 1,lengthStack,1
+    do
+        for j = 1,widthStack/2,1
+        do
+            colors={{1,0.86,0.02},{0,1,0.08},{1,0.39,0},{1,0,0}}
+            while true do
+                pos=math.random(1,4)
+                           
+                if counter[1]~=225 and pos==1 then break
+                elseif counter[2]~=32 and pos==2 then break
+                elseif counter[3]~=32 and pos==3 then break
+                elseif counter[4]~=179 and pos==4 then break
+                end
+                
+            end
+            
+            if pos==1 then counter[1]=counter[1]+1  
+            elseif pos==2 then counter[2]=counter[2]+1 
+            elseif pos==3 then counter[3]=counter[3]+1 
+            elseif pos==4 then counter[4]=counter[4]+1 end 
+            
+            color=colors[pos]
+            
+            local hndShape=sim.createPureShape(0,10,CubeSize,01,NULL)
+            sim.setObjectPosition(hndShape,-1,{x0+j*(cubeSize+offset),y0+i*(cubeSize+offset),z0})
+            sim.setShapeColor(hndShape,nil,sim.colorcomponent_ambient,color)
+            sim.setObjectSpecialProperty(hndShape,sim.objectspecialproperty_detectable_all)
+        end
+    end
+    return counter
+    
+end
+function sysCall_threadmain()
+    -- Put some initialization code here
+    lengthStack=18
+    widthStack=26
+    x0=0.2
+    y0=-2.1
+    z0=0.73
+    x1=1.14
+    cubeSize=0.06
+    offset=0.01
+    counter={0,0,0,0}
+
+    counter2=GenerateBoxes(lengthStack,widthStack,x0,y0,z0,cubeSize,offset,counter)
+    sim.wait(200)
+    counter2=GenerateBoxes(lengthStack,widthStack,x1,y0,z0,cubeSize,offset,counter2)
+    
+end
+
+function sysCall_cleanup()
+    -- Put some clean-up code here
+end
+
+-- See the user manual or the available code snippets for additional callback functions and details

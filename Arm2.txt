@@ -1,0 +1,141 @@
+function TableConcat(t1,t2)
+    for i=1,#t2 do
+        t1[#t1+1] = t2[i]
+    end
+    return t1
+end
+function pickFromBasket(i)
+    
+    aboveboxpos={1.8-(i-1)*0.5,0.65,0.85}
+    onboxpos={1.8-(i-1)*0.5,0.65,0.73}
+    sim.rmlMoveToPosition(target2,base,-1,currentVel,currentAccel,maxVel,maxAccel,maxJerk,aboveboxpos,orient,targetVel)
+    sim.rmlMoveToPosition(target2,base,-1,currentVel,currentAccel,maxVel,maxAccel,maxJerk,onboxpos,orient,targetVel)
+    
+    result,PSensor_distance,detectedPoint,detectedObjectHandle=sim.readProximitySensor(Proximity_sensor2)
+    sim.setIntegerSignal('detectedBox',1)
+    sim.setIntegerSignal('detectedObjectHandle',detectedObjectHandle)
+             
+    sim.setObjectInt32Parameter(detectedObjectHandle,3003,1)
+    sim.resetDynamicObject(detectedObjectHandle)
+    sim.setObjectParent(detectedObjectHandle,target2,true)
+        
+    sim.rmlMoveToPosition(target2,base,-1,currentVel,currentAccel,maxVel,maxAccel,maxJerk,aboveboxpos,orient,targetVel)
+    return detectedObjectHandle
+end
+
+function setSensor()
+    sensor=0
+    
+    if sim.readProximitySensor(proxGreen)==1 then sensor=2
+    elseif sim.readProximitySensor(proxOrange)==1 then sensor=3
+    elseif sim.readProximitySensor(proxYellow)==1 then sensor=1 
+    elseif sim.readProximitySensor(proxRed)==1 then sensor=4
+    else
+        
+        sim.wait(0.2) 
+        sensor=setSensor()
+    end
+  
+    return sensor
+end
+
+function arrange(sensor,i,j,detectedObjectHandle)
+      
+    local k=1
+    while true do
+        if flagC[k]== sensor then
+            flagC[k]=0
+            break
+        else k=k+1
+        end
+    end
+    n=k-1
+    row=((n-(n%lengthflag))/lengthflag)+1
+    col=n%lengthflag
+    
+    flagIn={x0-col*(cubesize+offset),y0+row*(cubesize+offset),z0} --flag position in
+    flagAbove={x0-col*(cubesize+offset),y0+row*(cubesize+offset),z0+0.06} --flag position above
+    
+    sim.rmlMoveToPosition(target2,base,-1,currentVel,currentAccel,maxVel,maxAccel,maxJerk,flagAbove,orient,targetVel)
+    sim.rmlMoveToPosition(target2,base,-1,currentVel,currentAccel,maxVel,maxAccel,maxJerk,flagIn,orient,targetVel)
+        
+    sim.setObjectInt32Parameter(detectedObjectHandle,3003,0)
+    sim.setObjectParent(detectedObjectHandle,-1,true)
+        
+    sim.rmlMoveToPosition(target2,base,-1,currentVel,currentAccel,maxVel,maxAccel,maxJerk,flagAbove,orient,targetVel)
+    
+end
+
+function sysCall_threadmain()
+    proxRed=sim.getObjectHandle('Proximity_sensorR')
+    proxGreen=sim.getObjectHandle('Proximity_sensorG')
+    proxOrange=sim.getObjectHandle('Proximity_sensorO')
+    proxYellow=sim.getObjectHandle('Proximity_sensorY')
+    Proximity_sensor2=sim.getObjectHandle('Proximity_sensor0')
+    target2=sim.getObjectHandle('Target2')
+    
+    sim.setIntegerSignal('boxColor',5)
+    sim.setIntegerSignal('detectedBox',1)
+    
+    base=-1
+    vel=1
+    accel=70
+    jerk=70
+    currentVel={0,0,0,0}
+    currentAccel={0,0,0,0}
+    maxVel={vel,vel,vel,vel}
+    maxAccel={accel,accel,accel,accel}
+    maxJerk={jerk,jerk,jerk,jerk}
+    targetVel={0,0,0,0}
+    orient=nil
+    x0=1.98
+    y0=1.0
+    z0=0.75
+    offset=0.02
+    cubesize=0.06
+    lengthflag=26
+    widthflag=18
+    
+    flag={{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 2, 2, 3, 3, 1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 1, 4, 4, 4, 1, 1, 1, 4, 4, 4, 4, 4, 1, 1, 1, 4, 1, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 4, 4, 4, 1, 1, 1, 4, 1, 4, 4, 4, 1, 4, 4, 4, 4, 4, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 4, 1, 4, 4, 4, 1, 1, 4, 4, 4, 4, 4, 1, 1, 1, 4, 4, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 4, 1, 4, 1, 1, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4, 1, 4, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 4, 1, 4, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 4, 4, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 4, 1, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 4, 1, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 4, 1, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 1, 1, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 4, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 4, 1, 4, 1, 4, 4, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 4, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 4, 4, 4, 4, 4, 4, 4, 1, 4, 4, 4, 1, 4, 4, 1, 1, 4, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 4, 4, 4, 4, 4, 4, 4, 1, 4, 4, 4, 1, 4, 4, 1, 4, 4, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 1, 4, 4, 4, 4, 4, 1, 1, 4, 4, 1, 1, 4, 1, 1, 4, 1, 4, 1},
+    {1, 2, 2, 3, 3, 1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
+    
+    flagC=flag[1]
+    for f=1,widthflag-1,1 
+    do
+        flagC=TableConcat(flagC,flag[f+1])
+    end
+        
+    sim.wait(6)
+    for i = 1,lengthflag,1
+    do
+        for j = 1,widthflag,1
+        do
+            sensor=setSensor()
+            detectedObjectHandle=pickFromBasket(sensor)--j+i*widthStack
+            arrange(sensor,i,j,detectedObjectHandle)
+                        
+        end
+    end
+    
+end
+
+function sysCall_cleanup()
+    -- Put some clean-up code here
+end
+

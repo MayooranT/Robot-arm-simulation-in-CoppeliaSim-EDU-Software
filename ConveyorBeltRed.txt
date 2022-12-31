@@ -1,0 +1,30 @@
+function sysCall_init() 
+    forwarder=sim.getObjectHandle('ConveyorBelt_forwarder')
+    R1=sim.getObjectHandle('Proximity_sensorR')
+    R2=sim.getObjectHandle('Proximity_sensorR2')
+end
+
+function sysCall_cleanup() 
+ 
+end 
+
+function sysCall_actuation() 
+    beltVelocity=sim.getScriptSimulationParameter(sim.handle_self,"conveyorBeltVelocity")
+    result1=sim.readProximitySensor(R1)
+    result2=sim.readProximitySensor(R2)
+    if result1>0 and result2>0 then beltVelocity=0 end
+    
+    relativeLinearVelocity={beltVelocity,0,0}
+
+    sim.resetDynamicObject(forwarder)
+
+    m=sim.getObjectMatrix(forwarder,-1)
+    m[4]=0 
+    m[8]=0 
+    m[12]=0 
+    absoluteLinearVelocity=sim.multiplyVector(m,relativeLinearVelocity)
+    
+    sim.setObjectFloatParameter(forwarder,sim.shapefloatparam_init_velocity_x,absoluteLinearVelocity[1])
+    sim.setObjectFloatParameter(forwarder,sim.shapefloatparam_init_velocity_y,absoluteLinearVelocity[2])
+    sim.setObjectFloatParameter(forwarder,sim.shapefloatparam_init_velocity_z,absoluteLinearVelocity[3])
+end 
